@@ -67,23 +67,23 @@ class RawNetData(Dataset):
         return len(self.data )
 
     def __getitem__(self, idx):
-        x, _ = transform_audio(torchaudio.load(self.data[idx][1]))
+        X , _ =torchaudio.load(self.data[idx][1])
+        data= transform_audio(X)
         target = self.data[idx][0]
 
-        return x, target
+        return data, target
 
 
 
-class RawNetDataLoder():
+class RawNetDataLoder( ):
     def __init__(self,  directory):
         dataSet = RawNetData(directory)
         data_loader = torch.utils.data.DataLoader(dataSet,
-                                                  batch_size=1,
+                                                  batch_size=16,
                                                   shuffle=True,
+                                                  num_workers=0
                                                   )
-
-dataLoader = RawNetDataLoder("/home/olive/voxceleb1/dev/wav")
-
+        print(type (data_loader))
 
 
 
