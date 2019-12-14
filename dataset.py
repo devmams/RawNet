@@ -72,22 +72,3 @@ class RawNetData(Dataset):
         target = self.data[idx][0]
 
         return data, target
-
-
-
-class RawNetDataLoder( ):
-    def __init__(self,  directory):
-        dataSet = RawNetData(directory)
-        data_loader = torch.utils.data.DataLoader(dataSet,
-                                                  batch_size=16,
-                                                  shuffle=True,
-                                                  num_workers=0
-                                                  )
-        print(type (data_loader))
-
-
-
-
-
-
-
