@@ -8,21 +8,26 @@ from modele_Data import RawNetData
 class RawNet(nn.Module):
     def __init__(self):
         super(RawNet, self).__init__()
-        #self.conv1 = nn.Conv2d(3, 6, 5)
-        #conv1D(3,3,128)
+        self.criterion = nn.CrossEntropyLoss()
+
+        self.lrelu = nn.LeakyReLU()
+        self.lrelu_keras = nn.LeakyReLU(negative_slope=0.3)
+
         self.first_conv = nn.Conv1d(in_channels = 1,#3
 			out_channels = 128,#128
 			kernel_size = 3,#3
         )
 
-    def forward(self, x):
-        x = self.first_conv(x)
+        self.bn = nn.BatchNorm1d(num_features = 128)
 
-        print("x : ", self.first_conv)
-        print("x.shape : ", x.shape)
-        print("x : ", x)
-        output = F.log_softmax(x,dim=1)
-        return output
+    def forward(self, x):
+        out = self.first_conv(x)
+        out = self.bn(out)
+        out = self.lrelu_keras(out)
+
+        
+        print("shape : ",out.shape)
+        return out
 
 def train(model, train_loader):
     for batch_idx, (data,target) in enumerate(train_loader):
