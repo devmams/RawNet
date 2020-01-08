@@ -12,14 +12,15 @@ from torch.utils import data
 ## permet de transformer la durée de l'audio de soorte à avoir 3,59 seconde
 def transform_audio(x):
     nb_time = 59049
-    my_time =np.asarray(x[:, 1:] - 0.97 * x[:, :-1], dtype=np.float32).shape[1]
-    if nb_time > my_time:
+    x = np.asarray(x[:, 1:] - 0.97 * x[:, :-1], dtype=np.float32)
+    my_time = x.shape[1]
+    if my_time > nb_time:
         start_idx = np.random.randint(low=0,
-                                      high=nb_time - my_time)
-        x = x[:, start_idx:start_idx + my_time]
-    elif nb_time < my_time:
-        nb_dup = int(my_time / nb_time) + 1
-        x = np.tile(x, (1, nb_dup))[:, :my_time]
+                                      high= my_time - nb_time)
+        x = x[:, start_idx:start_idx + nb_time]
+    elif my_time < nb_time:
+        nb_dup = int(nb_time / my_time) + 1
+        x = np.tile(x, (1, nb_dup))[:, :nb_time]
     else:
         x = x
 
@@ -71,7 +72,7 @@ class RawNetData(Dataset):
         data= transform_audio(X)
         target = self.data[idx][0]
 
-        return data, target
+        return data, int(target[2:])
 
 
 
