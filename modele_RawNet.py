@@ -21,12 +21,43 @@ class RawNet(nn.Module):
         )
 
         self.bn = nn.BatchNorm1d(num_features = 128)
+        self.gru = nn.GRU(input_size = 59049,
+			hidden_size = 1)
+
+        self.gru_fc1 = nn.Linear(1,1024)
+        self.gru_fc2 = nn.Linear(1024,59049)
+
+        self.gru2 = nn.Linear( in_features = 1, out_features = 1211)
+
+
+        self.conv2 = nn.Conv1d(in_channels=128,
+                               out_channels=128,
+                               kernel_size=3,
+                               padding=1,
+                               stride=1)
+        self.bn2 = nn.BatchNorm1d(num_features=128)
+        
+        self.mp = nn.MaxPool1d(3)
 
     def forward(self, x):
         out = self.first_conv(x)
         out = self.bn(out)
-        out = self.lrelu_keras(out)
+        out = self.lrelu(out)
 
+        out, _ = self.gru(x)
+        out = out[:,-1,:]
+        out = self.gru_fc1(out)
+        out = self.gru_fc2(out)
+        #print("shape : ",out.shape)
+        #print("shape : ",out.shape)
+
+        #out = self.conv2(x)
+        #out = self.bn2(out)
+        #out = self.lrelu_keras(out)
+        #out = self.conv2(out)
+        #out = self.bn2(out)
+        #out = self.lrelu_keras(out)
+        #out = self.mp(out)
 
         print("shape : ",out.shape)
 
@@ -46,9 +77,13 @@ def train(model, train_loader, optimizer, device):
 
         output = model(data)
         print("output : ", output)
-        print("output shape : ", output.shape)
+        print("output shape : ", output.size())
+        print("output squeeze shape : ", output.squeeze().size())
+        print("target shape : ", target.size())
+        print("target shape : ", target.long().size())
+
         optimizer.zero_grad()
-        loss = criterion(output.squeeze(),target.long())
+        loss = criterion(output,target)
         print("loss :", loss)
         
         loss.backward()
