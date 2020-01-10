@@ -45,7 +45,7 @@ def loadAudioFromDirectory(path):
 def getAllWaveFileByWaveDirectory(directory):
     listeWavefiles = []
     listeIdAuteur = []
-    listeIdAuteur = getFirst(directory);
+    listeIdAuteur = getFirst(directory)[0:2];
     for idAuteur in listeIdAuteur:
         waveFolderByIdAuteur =getFirst(directory+"/"+idAuteur)
         for elt in waveFolderByIdAuteur:
