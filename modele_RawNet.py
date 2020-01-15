@@ -26,7 +26,7 @@ class RawNet(nn.Module):
 
         self.gru_fc1 = nn.Linear(1,1024)
         self.gru_fc2 = nn.Linear(1024,59049)
-        self.bn_before_gru = nn.BatchNorm1d(num_features = 256])
+        self.bn_before_gru = nn.BatchNorm1d(num_features = 256)
 
 
         self.gru2 = nn.Linear( in_features = 1, out_features = 1211)
@@ -42,12 +42,21 @@ class RawNet(nn.Module):
 
         self.bn2 = nn.BatchNorm1d(num_features=128)
         
-        self.conv3_1 = nn.Conv1d(in_channels = 128,
+        self.conv3_1_1 = nn.Conv1d(in_channels = 128,
                                out_channels = 256,
                                kernel_size = 3,
                                padding = 1,
                                stride = 1
         )
+
+        self.conv3_1 = nn.Conv1d(in_channels = 256,
+                               out_channels = 256,
+                               kernel_size = 3,
+                               padding = 1,
+                               stride = 1
+        )
+
+
 
         self.conv3_2 = nn.Conv1d(in_channels = 256,
                                out_channels = 256,
@@ -64,6 +73,7 @@ class RawNet(nn.Module):
         )
 
 
+        self.bn3_1_1 = nn.BatchNorm1d(num_features=256)
         self.bn3_1 = nn.BatchNorm1d(num_features=128)
         self.bn3_2 = nn.BatchNorm1d(num_features=256)
 
@@ -99,7 +109,7 @@ class RawNet(nn.Module):
         #-------- Block 2 --------------
         
         out_identite = out
-        out = self.conv3_1(out)
+        out = self.conv3_1_1(out)
         out = self.bn3_2(out)
         out = self.lrelu_keras(out)
         out = self.conv3_2(out)
@@ -107,33 +117,33 @@ class RawNet(nn.Module):
         out = self.mp(out)
 
         out_identite = out
-        out = self.bn3_1(out)
+        out = self.bn3_1_1(out)
         out = self.lrelu_keras(out)
         out = self.conv3_1(out)
         out = self.bn3_2(out)
         out = self.lrelu_keras(out)
         out = self.conv3_2(out)
-        out += self.conv3_3(out_identite)
+        out += out_identite
         out = self.mp(out)
 
         out_identite = out
-        out = self.bn3_1(out)
+        out = self.bn3_1_1(out)
         out = self.lrelu_keras(out)
         out = self.conv3_1(out)
         out = self.bn3_2(out)
         out = self.lrelu_keras(out)
         out = self.conv3_2(out)
-        out += self.conv3_3(out_identite)
+        out += out_identite
         out = self.mp(out)
 
         out_identite = out
-        out = self.bn3_1(out)
+        out = self.bn3_1_1(out)
         out = self.lrelu_keras(out)
         out = self.conv3_1(out)
         out = self.bn3_2(out)
         out = self.lrelu_keras(out)
         out = self.conv3_2(out)
-        out += self.conv3_3(out_identite)
+        out += out_identite
         out = self.mp(out)
 
         print("shape resblock 2 : ", out.shape)
@@ -143,14 +153,15 @@ class RawNet(nn.Module):
 
         out = self.bn_before_gru(out)
         out = self.lrelu_keras(out)
-	out = out.permute(0, 2, 1)#(batch, filt, time) >> (batch, time, filt)
+        out = out.permute(0, 2, 1)
+        #(batch, filt, time) >> (batch, time, filt)
 
         out, _ = self.gru(out)
         out = out[:,-1,:]
         code = self.fc1_gru(out)
         code_norm = code.norm(p=2,dim=1, keepdim=True) / 10.
-	code = torch.div(code, code_norm)
-	out = self.fc2_gru(code)
+        code = torch.div(code, code_norm)
+        out = self.fc2_gru(code)
 
         out = self.gru_fc1(out)
         out = self.gru_fc2(out)
