@@ -21,15 +21,18 @@ class RawNet(nn.Module):
         )
 
         self.bn = nn.BatchNorm1d(num_features = 128)
-        self.gru = nn.GRU(input_size = 59049,
-			hidden_size = 1)
+        self.gru = nn.GRU(input_size = 256,
+			hidden_size = 1024,
+                        num_layers = 1,
+                        batch_first = True)
 
-        self.gru_fc1 = nn.Linear(1,1024)
-        self.gru_fc2 = nn.Linear(1024,59049)
+        self.gru_fc1 = nn.Linear(in_features = 1024,
+                                 out_features = 1024)
+
+        self.gru_fc2 = nn.Linear(in_features = 1024,
+                                 out_features = 2)
+
         self.bn_before_gru = nn.BatchNorm1d(num_features = 256)
-
-
-        self.gru2 = nn.Linear( in_features = 1, out_features = 1211)
 
 
         self.conv2 = nn.Conv1d(in_channels = 128,
@@ -157,16 +160,18 @@ class RawNet(nn.Module):
         #(batch, filt, time) >> (batch, time, filt)
 
         out, _ = self.gru(out)
+
         out = out[:,-1,:]
-        code = self.fc1_gru(out)
+        code = self.gru_fc1(out)
+
         code_norm = code.norm(p=2,dim=1, keepdim=True) / 10.
         code = torch.div(code, code_norm)
-        out = self.fc2_gru(code)
 
-        out = self.gru_fc1(out)
-        out = self.gru_fc2(out)
+        print("shape GRU : ",code.shape)
 
-        print("shape output : ", out)
+        out = self.gru_fc2(code)
+
+        print("shape output : ", out.shape)
 
         return out
 
@@ -179,13 +184,12 @@ def train(model, train_loader, optimizer, device):
         target = target.to(device)
 
         output = model(data)
-        #print("output : ", output)
-        #print("data shape : ", data.size())
-        #print("target shape : ", target.size())
-        #print("shape output : ",output.shape)
+        print("target shape : ", output)
+        print("target shape : ", target.size())
+        print("target shape[0] : ", target)
 
         optimizer.zero_grad()
-        loss = criterion(output,target)
+        loss = criterion(output[:,-1],target)
         print("loss :", loss)
         
         loss.backward()
