@@ -45,13 +45,13 @@ def loadAudioFromDirectory(path):
 def getAllWaveFileByWaveDirectory(directory):
     listeWavefiles = []
     listeIdAuteur = []
-    listeIdAuteur = getFirst(directory)[0:10];
+    listeIdAuteur = getFirst(directory)[0:2];
     for idAuteur in listeIdAuteur:
         waveFolderByIdAuteur =getFirst(directory+"/"+idAuteur)
         for elt in waveFolderByIdAuteur:
             for file in  loadAudioFromDirectory(directory+"/"+idAuteur+"/"+elt):
                 listeWavefiles.append([idAuteur, file])
-    return listeWavefiles
+    return listeWavefiles, listeIdAuteur
 
 
 class RawNetData(Dataset):
@@ -59,9 +59,9 @@ class RawNetData(Dataset):
     def __init__(self,  directory):
 
         # data, une liste contenant pour chaque elemment, l'auteur(son id ) et l'audio (chemin d'accès)
-        self.data = getAllWaveFileByWaveDirectory(directory)
-        self.tab_id = []
-
+        self.data, idAuteurs = getAllWaveFileByWaveDirectory(directory)
+	
+    self.id =  range(len(idAuteurs))
     def __len__(self):
         # renvoie le nom d'element dans la liste wave
         return len(self.data )
@@ -69,24 +69,9 @@ class RawNetData(Dataset):
     def __getitem__(self, idx):
         X , _ = torchaudio.load(self.data[idx][1])
         data= transform_audio(X)
-        target = self.data[idx][0]
-        if target in self.tab_id:
-            return data, self.tab_id.index(target)
-        else:
-            self.tab_id.append(target)
-            return data, self.tab_id.index(target)
+        target = self.id[idx]
 
-
-class RawNetDataLoder( ):
-    def __init__(self,  directory):
-        dataSet = RawNetData(directory)
-        data_loader = torch.utils.data.DataLoader(dataSet,
-                                                  batch_size=16,
-                                                  shuffle=True,
-                                                  num_workers=0
-                                                  )
-        print(type (data_loader))
-
+        return data, idx
 
 
 

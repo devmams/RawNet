@@ -30,7 +30,8 @@ class RawNet(nn.Module):
                                  out_features = 1024)
 
         self.gru_fc2 = nn.Linear(in_features = 1024,
-                                 out_features = 2)
+                                 out_features = 10,
+                                 bias = True)
 
         self.bn_before_gru = nn.BatchNorm1d(num_features = 256)
 
@@ -180,8 +181,8 @@ def train(model, train_loader, optimizer, device):
     for batch_idx, (data,target) in enumerate(train_loader):
 
         
-        data = data.to(device)
-        target = target.to(device)
+        #data = data.to(device)
+        #target = target.to(device)
 
         output = model(data)
         print("target shape : ", output)
@@ -189,7 +190,7 @@ def train(model, train_loader, optimizer, device):
         print("target shape[0] : ", target)
 
         optimizer.zero_grad()
-        loss = criterion(output[:,-1],target)
+        loss = criterion(output,target)
         print("loss :", loss)
         
         loss.backward()
