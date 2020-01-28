@@ -8,57 +8,57 @@ from modele_Data import RawNetData
 import numpy as np
 
 class Residual_block(nn.Module):
-	def __init__(self, nb_filts, first = False):
-		super(Residual_block, self).__init__()
-		self.first = first
+    def __init__(self, nb_filts, first = False):
+        super(Residual_block, self).__init__()
+        self.first = first
 
-		if not self.first:
-			self.bn1 = nn.BatchNorm1d(num_features = nb_filts[0])
-		self.lrelu = nn.LeakyReLU()
-		self.lrelu_keras = nn.LeakyReLU(negative_slope=0.3)
+        if not self.first:
+            self.bn1 = nn.BatchNorm1d(num_features = nb_filts[0])
+	self.lrelu = nn.LeakyReLU()
+	self.lrelu_keras = nn.LeakyReLU(negative_slope=0.3)
 
-		self.conv1 = nn.Conv1d(in_channels = nb_filts[0],
+	self.conv1 = nn.Conv1d(in_channels = nb_filts[0],
+		out_channels = nb_filts[1],
+		kernel_size = 3,
+		padding = 1,
+		stride = 1)
+	self.bn2 = nn.BatchNorm1d(num_features = nb_filts[1])
+	self.conv2 = nn.Conv1d(in_channels = nb_filts[1],
+		out_channels = nb_filts[1],
+		padding = 1,
+		kernel_size = 3,
+		stride = 1)
+
+	if nb_filts[0] != nb_filts[1]:
+	    self.downsample = True
+	    self.conv_downsample = nn.Conv1d(in_channels = nb_filts[0],
 			out_channels = nb_filts[1],
-			kernel_size = 3,
-			padding = 1,
+			padding = 0,
+			kernel_size = 1,
 			stride = 1)
-		self.bn2 = nn.BatchNorm1d(num_features = nb_filts[1])
-		self.conv2 = nn.Conv1d(in_channels = nb_filts[1],
-			out_channels = nb_filts[1],
-			padding = 1,
-			kernel_size = 3,
-			stride = 1)
+	else:
+            self.downsample = False
+            self.mp = nn.MaxPool1d(3)
 
-		if nb_filts[0] != nb_filts[1]:
-			self.downsample = True
-			self.conv_downsample = nn.Conv1d(in_channels = nb_filts[0],
-				out_channels = nb_filts[1],
-				padding = 0,
-				kernel_size = 1,
-				stride = 1)
-		else:
-			self.downsample = False
-		self.mp = nn.MaxPool1d(3)
-
-	def forward(self, x):
-		identity = x
-		if not self.first:
-			out = self.bn1(x)
-			out = self.lrelu_keras(out)
-		else:
-			out = x
-
-		out = self.conv1(x)
-		out = self.bn2(out)
+    def forward(self, x):
+	identity = x
+	if not self.first:
+		out = self.bn1(x)
 		out = self.lrelu_keras(out)
-		out = self.conv2(out)
+	else:
+		out = x
 
-		if self.downsample:
-			identity = self.conv_downsample(identity)
+	out = self.conv1(x)
+	out = self.bn2(out)
+	out = self.lrelu_keras(out)
+	out = self.conv2(out)
 
-		out += identity
-		out = self.mp(out)
-		return out
+	if self.downsample:
+		identity = self.conv_downsample(identity)
+
+	out += identity
+	out = self.mp(out)
+	return out
 
 class RawNet(nn.Module):
     def __init__(self):
