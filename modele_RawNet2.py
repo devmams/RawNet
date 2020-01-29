@@ -14,51 +14,51 @@ class Residual_block(nn.Module):
 
         if not self.first:
             self.bn1 = nn.BatchNorm1d(num_features = nb_filts[0])
-	self.lrelu = nn.LeakyReLU()
-	self.lrelu_keras = nn.LeakyReLU(negative_slope=0.3)
+        self.lrelu = nn.LeakyReLU()
+        self.lrelu_keras = nn.LeakyReLU(negative_slope=0.3)
 
-	self.conv1 = nn.Conv1d(in_channels = nb_filts[0],
-		out_channels = nb_filts[1],
+        self.conv1 = nn.Conv1d(in_channels = nb_filts[0],
+	        out_channels = nb_filts[1],
 		kernel_size = 3,
 		padding = 1,
 		stride = 1)
-	self.bn2 = nn.BatchNorm1d(num_features = nb_filts[1])
-	self.conv2 = nn.Conv1d(in_channels = nb_filts[1],
+        self.bn2 = nn.BatchNorm1d(num_features = nb_filts[1])
+        self.conv2 = nn.Conv1d(in_channels = nb_filts[1],
 		out_channels = nb_filts[1],
 		padding = 1,
 		kernel_size = 3,
 		stride = 1)
 
-	if nb_filts[0] != nb_filts[1]:
-	    self.downsample = True
-	    self.conv_downsample = nn.Conv1d(in_channels = nb_filts[0],
+        if nb_filts[0] != nb_filts[1]:
+            self.downsample = True
+            self.conv_downsample = nn.Conv1d(in_channels = nb_filts[0],
 			out_channels = nb_filts[1],
 			padding = 0,
 			kernel_size = 1,
 			stride = 1)
-	else:
+        else:
             self.downsample = False
-            self.mp = nn.MaxPool1d(3)
+        self.mp = nn.MaxPool1d(3)
 
     def forward(self, x):
-	identity = x
-	if not self.first:
-		out = self.bn1(x)
-		out = self.lrelu_keras(out)
-	else:
-		out = x
+        identity = x
+        if not self.first:
+            out = self.bn1(x)
+            out = self.lrelu_keras(out)
+        else:
+            out = x
 
-	out = self.conv1(x)
-	out = self.bn2(out)
-	out = self.lrelu_keras(out)
-	out = self.conv2(out)
+        out = self.conv1(x)
+        out = self.bn2(out)
+        out = self.lrelu_keras(out)
+        out = self.conv2(out)
 
-	if self.downsample:
-		identity = self.conv_downsample(identity)
+        if self.downsample:
+            identity = self.conv_downsample(identity)
 
-	out += identity
-	out = self.mp(out)
-	return out
+        out += identity
+        out = self.mp(out)
+        return out
 
 class RawNet(nn.Module):
     def __init__(self):
@@ -77,7 +77,7 @@ class RawNet(nn.Module):
 			nb_filts = [128,128],
 			first = True)
 
-		self.block2 = self._make_layer(nb_blocks = 4,
+        self.block2 = self._make_layer(nb_blocks = 4,
 			nb_filts = [128,256])
 
 
@@ -98,17 +98,17 @@ class RawNet(nn.Module):
 
         out = self.conv1(x)
         out = self.bn(out)
-        out = self.lrelu(out)
+        out = self.lrelu_keras(out)
         print("shape conv 1 : ", out.shape)
 
         #-------- Block 1 --------------
 
-        out = self.block0(out)
+        out = self.block1(out)
         print("shape resblock 1 : ", out.shape)
 
         #-------- Block 2 --------------
 
-		out = self.block1(out)
+        out = self.block2(out)
         print("shape resblock 2 : ", out.shape)
 
 
@@ -137,15 +137,15 @@ class RawNet(nn.Module):
 
 
     def _make_layer(self, nb_blocks, nb_filts, first = False):
-		layers = []
-		#def __init__(self, nb_filts, first = False):
-		for i in range(nb_blocks):
-			first = first if i == 0 else False
-			layers.append(Residual_block(nb_filts = nb_filts,
-				first = first))
-			if i == 0: nb_filts[0] = nb_filts[1]
+        layers = []
+        #def __init__(self, nb_filts, first = False):
+        for i in range(nb_blocks):
+            first = first if i == 0 else False
+            layers.append(Residual_block(nb_filts = nb_filts,
+			first = first))
+            if i == 0: nb_filts[0] = nb_filts[1]
 
-		return nn.Sequential(*layers)
+            return nn.Sequential(*layers)
 
 
 
