@@ -7,14 +7,14 @@
 # les données d'apprentissage ont été récupéré sur la page suivant:
 # page d'accueil :http://www.robots.ox.ac.uk/~vgg/data/voxceleb/vox1.html
 #
-# Il a y'a eu des implémentations en TenserFlow à la page suivante :
+# Il a y a eu des implémentations en TenserFlow à la page suivante :
 # page d'accueil :https://github.com/Jungjee/RawNet
 #
 # Ce modèle est en cours de développement: Vous pouvez y contribuer en travaillant avec nous :
 # Contact : ...
 
 """
-Copyright 2020 Olive DOVI
+Copyright 2020 Olive DOVI, Mamadou DIALLO, Maymouna SY, Yassine M'CHAAR
 """
 import torch
 from torch.utils.data.dataset import Dataset
@@ -25,7 +25,7 @@ import os
 __license__ = "LGPL"
 __author__ = "Olive DOVI, Sy Maymouna, Mamadou Diallo,yassine Macchar "
 __copyright__ = "Copyright 2020 Olive DOVI"
-__maintainer__ = "Olive DOVI"
+__maintainer__ = "Olive DOVI, Mamadou DIALLO, Maymouna SY, Yassine M'CHAAR"
 __email__ = "mawuss_olive.dovi.etu@univ-lemans.fr"
 __status__ = "developpement"
 __docformat__ = 'reS'

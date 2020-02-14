@@ -1,3 +1,21 @@
+# -*- coding: utf-8 -*-
+#
+# Ce fichier est une partie du modèle RawNet.
+# RawNet est un modèle de reconnaissance du locuteur se basant sur l'article suivant :
+# page d'accueil : https://arxiv.org/pdf/1904.08104.pdf
+#
+# les données d'apprentissage ont été récupéré sur la page suivant:
+# page d'accueil :http://www.robots.ox.ac.uk/~vgg/data/voxceleb/vox1.html
+#
+# Il a y a eu des implémentations en TenserFlow à la page suivante :
+# page d'accueil :https://github.com/Jungjee/RawNet
+#
+# Ce modèle est en cours de développement: Vous pouvez y contribuer en travaillant avec nous :
+# Contact : ...
+
+"""
+Copyright 2020 Olive DOVI, Mamadou DIALLO, Maymouna SY, Yassine M'CHAAR
+"""
 import torch.nn as nn
 import torch.nn.functional as F
 import importlib
@@ -5,9 +23,26 @@ import torch
 import torch.optim as optim
 from modele_Data import RawNetData
 import numpy as np
+__license__ = "LGPL"
+__author__ = "Olive DOVI, Mamadou Diallo, Maymouna SY, Yassine M'CHAAR"
+__copyright__ = "Copyright 2020 Olive DOVI"
+__maintainer__ = "Olive DOVI, Mamadou DIALLO, Maymouna SY, Yassine M'CHAAR"
+__email__ = "mawuss_olive.dovi.etu@univ-lemans.fr"
+__status__ = "developpement"
+__docformat__ = 'reS'
 
 class Residual_block(nn.Module):
+    """
+        création du Residual_block
+    """
     def __init__(self, nb_filts, first = False):
+        """
+           initialisation du Residual_block
+           :param nb_filts
+                exemple 2
+
+            chaque bloc pourra être répété plusieurs fois
+        """
         super(Residual_block, self).__init__()
         self.first = first
 
@@ -39,6 +74,10 @@ class Residual_block(nn.Module):
             self.downsample = False
         self.mp = nn.MaxPool1d(3)
 
+    """
+    permet de créer un block de calcul composé d'un ensemble de
+    (convolution, LSTM, GRU, BatchNorm, LeakyReLU ...)
+    """
     def forward(self, x):
         identity = x
         if not self.first:
@@ -60,7 +99,15 @@ class Residual_block(nn.Module):
         return out
 
 class RawNet(nn.Module):
+    """
+        création du model Rawnet
+    """
     def __init__(self):
+        """
+           initialisation du model rawnet
+
+           L'objet crée notre modèle d'apprentissage
+        """
         super(RawNet, self).__init__()
 
         self.lrelu_keras = nn.LeakyReLU(negative_slope=0.3)
@@ -151,6 +198,13 @@ class RawNet(nn.Module):
 
 
 def train(model, train_loader, optimizer, device):
+    """
+       permet de faire notre apprentissage
+       :param train_loader le dataloader du train
+       :param optimizer pour optimiser nos paramètres
+       :param device permet d'utiliser le GPU pour le calcul
+
+    """
     criterion = nn.CrossEntropyLoss()
     num_epochs = 5         # The number of times entire dataset is trained
     for epoch in range(num_epochs):
@@ -180,23 +234,14 @@ def train(model, train_loader, optimizer, device):
 
 if __name__ == '__main__':
 
-    #DIRECTORY = "/info/home/larcher/ATAL/2019/voxceleb1/dev/wav"
     DIRECTORY = "/home/s185313/data/voxceleb1/dev/wav"
-    print(DIRECTORY)
-    #print("-----")
     dataset = RawNetData(DIRECTORY)
-    #print("test data dataset : ", type(dataset.__getitem__(0)[0]))
-    #print("test target dataset : ", type(dataset.__getitem__(0)[1]))
-
     data_loader = torch.utils.data.DataLoader(dataset,batch_size=30,shuffle=True,
                                                drop_last=True, num_workers=12)
-    #print(data_loader)
     print("-----------------------------------------------------------")
 
     cuda = torch.cuda.is_available()
     device = torch.device('cuda' if cuda else 'cpu')
-    print(device)
-
     model = RawNet().to(device)
     print(model)
 
