@@ -90,7 +90,7 @@ class RawNet(nn.Module):
                                  out_features = 1024)
 
         self.gru_fc2 = nn.Linear(in_features = 1024,
-                                 out_features = 10,
+                                 out_features = 1211,
                                  bias = True)
 
     def forward(self, x):
@@ -98,7 +98,7 @@ class RawNet(nn.Module):
         out = self.conv1(x)
         out = self.bn(out)
         out = self.lrelu_keras(out)
-        print("shape conv 1 : ", out.shape)
+        #print("shape conv 1 : ", out.shape)
 
         #-------- Block 1 --------------
 
@@ -108,7 +108,7 @@ class RawNet(nn.Module):
         #-------- Block 2 --------------
 
         out = self.block2(out)
-        print("shape resblock 1 & 2 : ", out.shape)
+        #print("shape resblock 1 & 2 : ", out.shape)
 
 
         #-------- Gru --------------
@@ -126,11 +126,11 @@ class RawNet(nn.Module):
         code_norm = code.norm(p=2,dim=1, keepdim=True) / 10.
         code = torch.div(code, code_norm)
 
-        print("shape GRU : ",code.shape)
+        #print("shape GRU : ",code.shape)
 
         out = self.gru_fc2(code)
 
-        print("shape output : ", out.shape)
+        #print("shape output : ", out.shape)
         return out
 
 
@@ -152,45 +152,53 @@ class RawNet(nn.Module):
 
 def train(model, train_loader, optimizer, device):
     criterion = nn.CrossEntropyLoss()
-    for batch_idx, (data,target) in enumerate(train_loader):
+    num_epochs = 5         # The number of times entire dataset is trained
+    for epoch in range(num_epochs):
+
+        for i, (data,target) in enumerate(train_loader):
 
 
-        #data = data.to(device)
-        #target = target.to(device)
+            data = data.to(device)
+            target = target.to(device)
 
-        output = model(data)
-        #print("target shape : ", output)
-        print("shape target : ", target.size())
-        #print("target shape[0] : ", target)
+            output = model(data)
+            #print("target shape : ", output)
+            #print("shape target : ", target.size())
+            #print("target shape[0] : ", target)
 
-        optimizer.zero_grad()
-        loss = criterion(output,target)
-        print("loss :", loss)
+            optimizer.zero_grad()
+            loss = criterion(output,target)
+            #print("loss :", loss)
 
-        loss.backward()
-        optimizer.step()
-
-        print("-----------------------------------------------------------")
+            loss.backward()
+            optimizer.step()
+            if (i+1) % num_epochs == 0:                              # Logging
+                with open("resultat.txt", "a") as myfile:
+                    s = 'Epoch [' + str(epoch+1) + '/' + str(num_epochs) + ']' + 'Loss : ' + str(loss.item()) + '\n'
+                    myfile.write(s)
 
 
 if __name__ == '__main__':
 
-    DIRECTORY = "/info/home/larcher/ATAL/2019/voxceleb1/dev/wav"
+    #DIRECTORY = "/info/home/larcher/ATAL/2019/voxceleb1/dev/wav"
+    DIRECTORY = "/home/s185313/data/voxceleb1/dev/wav"
     print(DIRECTORY)
     #print("-----")
     dataset = RawNetData(DIRECTORY)
     #print("test data dataset : ", type(dataset.__getitem__(0)[0]))
     #print("test target dataset : ", type(dataset.__getitem__(0)[1]))
 
-    data_loader = torch.utils.data.DataLoader(dataset,batch_size=120,shuffle=True,
+    data_loader = torch.utils.data.DataLoader(dataset,batch_size=30,shuffle=True,
                                                drop_last=True, num_workers=12)
     #print(data_loader)
     print("-----------------------------------------------------------")
-    model = RawNet()
-    print(model)
 
     cuda = torch.cuda.is_available()
     device = torch.device('cuda' if cuda else 'cpu')
+    print(device)
+
+    model = RawNet().to(device)
+    print(model)
 
     learning_rate = 0.001
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate,

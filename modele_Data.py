@@ -45,7 +45,7 @@ def loadAudioFromDirectory(path):
 def getAllWaveFileByWaveDirectory(directory):
     listeWavefiles = []
     listeIdAuteur = []
-    listeIdAuteur = getFirst(directory)[0:10];
+    listeIdAuteur = getFirst(directory);
     for idAuteur in listeIdAuteur:
         waveFolderByIdAuteur =getFirst(directory+"/"+idAuteur)
         for elt in waveFolderByIdAuteur:
@@ -75,18 +75,6 @@ class RawNetData(Dataset):
         else:
             self.tab_id.append(target)
             return data, self.tab_id.index(target)
-
-
-class RawNetDataLoder( ):
-    def __init__(self,  directory):
-        dataSet = RawNetData(directory)
-        data_loader = torch.utils.data.DataLoader(dataSet,
-                                                  batch_size=16,
-                                                  shuffle=True,
-                                                  num_workers=0
-                                                  )
-        print(type (data_loader))
-
 
 
 
