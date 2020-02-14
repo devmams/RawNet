@@ -1,17 +1,50 @@
+# -*- coding: utf-8 -*-
+#
+# Ce fichier est une partie du modèle RawNet.
+# RawNet est un modèle de reconnaissance du locuteur se basant sur l'article suivant :
+# page d'accueil : https://arxiv.org/pdf/1904.08104.pdf
+#
+# les données d'apprentissage ont été récupéré sur la page suivant:
+# page d'accueil :http://www.robots.ox.ac.uk/~vgg/data/voxceleb/vox1.html
+#
+# Il a y'a eu des implémentations en TenserFlow à la page suivante :
+# page d'accueil :https://github.com/Jungjee/RawNet
+#
+# Ce modèle est en cours de développement: Vous pouvez y contribuer en travaillant avec nous :
+# Contact : ...
 
+"""
+Copyright 2020 Olive DOVI
+"""
 import torch
 from torch.utils.data.dataset import Dataset
 import numpy as np
 from wave import Wave_write
 import torchaudio
 import os
-from torch.utils import data
+__license__ = "LGPL"
+__author__ = "Olive DOVI, Sy Maymouna, Mamadou Diallo,yassine Macchar "
+__copyright__ = "Copyright 2020 Olive DOVI"
+__maintainer__ = "Olive DOVI"
+__email__ = "mawuss_olive.dovi.etu@univ-lemans.fr"
+__status__ = "developpement"
+__docformat__ = 'reS'
+
 
 
 
 ## permet de transformer la durée de l'audio de soorte à avoir 3,59 seconde
-def transform_audio(x):
+def transform_audio(audioTensor):
+    """
+    permet d'uniformiser la durée d'un audio pour avoir un audio de 3,59 secondes en sortie
+    si la durée est:
+        inférieur, on multiplie les fréquence pour avoir la taille neccessaire .
+        supérieur, on le réduit ç la taille neccessaire
+        :param audio de type Tensor
+        :return: audio de type Tensor à la taille 3,59
+    """
     nb_time = 59049
+    x = audioTensor
     x = np.asarray(x[:, 1:] - 0.97 * x[:, :-1], dtype=np.float32)
     my_time = x.shape[1]
     if my_time > nb_time:
@@ -43,9 +76,16 @@ def loadAudioFromDirectory(path):
 # cette fonction permet de recuperer tous les fichiers audio d'un dossier wav et les classe par ID
 # retourne une liste de liste, pour chaque element de la liste , le premier element correspond à l'id et le second correspond au chemin d'accès du fichier wave
 def getAllWaveFileByWaveDirectory(directory):
+    """
+       permet de recupérer tous les audios wav present dans le repertoire classé par auteur
+           :param directory repertoire wav
+                exemple .../voxceleb1/dev/wav
+           :return: listeWavefiles ,
+                exemple : [[id1, ".../audio1.wav"], [id2, ".../audio2.wav"]]
+    """
     listeWavefiles = []
     listeIdAuteur = []
-    listeIdAuteur = getFirst(directory);
+    listeIdAuteur = getFirst(directory)[0:10];
     for idAuteur in listeIdAuteur:
         waveFolderByIdAuteur =getFirst(directory+"/"+idAuteur)
         for elt in waveFolderByIdAuteur:
@@ -55,10 +95,20 @@ def getAllWaveFileByWaveDirectory(directory):
 
 
 class RawNetData(Dataset):
+    """
+        création du dataSet
+    """
 
     def __init__(self,  directory):
+        """
+           initialisation du dataSet
+           :param directory repertoire wav
+                exemple .../voxceleb1/dev/wav
 
-        # data, une liste contenant pour chaque elemment, l'auteur(son id ) et l'audio (chemin d'accès)
+            l'objet dispose d'un attribut data avec la structure data, une liste contenant pour chaque elemment, l'auteur(son id ) et l'audio (chemin d'accès)
+                exemple : [[id1, ".../audio1.wav"], [id2, ".../audio2.wav"]]
+        """
+
         self.data = getAllWaveFileByWaveDirectory(directory)
         self.tab_id = []
 
@@ -75,9 +125,3 @@ class RawNetData(Dataset):
         else:
             self.tab_id.append(target)
             return data, self.tab_id.index(target)
-
-
-
-
-
-
